@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { SessionStore } from '../state/session.store';
 
 @Injectable({ providedIn: 'root' })
@@ -9,6 +9,8 @@ export class AudioService {
   private rafId?: number;
   private onsetAr: number[] = [];
   private started = false;
+
+  readonly level = signal(0);
 
   constructor(private session: SessionStore) {}
 
@@ -34,6 +36,7 @@ export class AudioService {
       let sum = 0;
       for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
       const rms = Math.sqrt(sum / buf.length);
+      this.level.set(rms);
       this.onsetAr.push(rms);
       if (this.onsetAr.length > 6) this.onsetAr.shift();
 
