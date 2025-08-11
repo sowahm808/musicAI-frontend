@@ -21,6 +21,12 @@ export class AudioService {
 
   async initMic() {
     if (this.ctx) return;
+    // reset analysis buffers so each session starts fresh
+    this.onsetAr = [];
+    this.onsetTimes = [];
+    this.pitchHist = [];
+    this.started = false;
+
     this.ctx = new AudioContext({ latencyHint: 'interactive' });
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
@@ -46,7 +52,7 @@ export class AudioService {
       if (this.onsetAr.length > 6) this.onsetAr.shift();
 
       // pitch detection
-      const freq = this.detectPitch(buf);
+      const freq = this.detectPitch(buf, rms);
       if (freq > 0) {
         const note = this.freqToNote(freq);
         const pc = this.noteToClass(note);
@@ -104,20 +110,32 @@ export class AudioService {
     }
   }
 
-  private detectPitch(buf: Float32Array): number {
-    if (!this.ctx) return 0;
+  private detectPitch(buf: Float32Array, rms: number): number {
+    if (!this.ctx || rms < 0.01) return 0;
     const sampleRate = this.ctx.sampleRate;
+    const size = buf.length;
+    const maxSamples = Math.floor(size / 2);
     let bestOffset = -1;
-    let bestCorr = 0;
-    for (let offset = 8; offset < buf.length / 2; offset++) {
-      let corr = 0;
-      for (let i = 0; i < buf.length - offset; i++) {
-        corr += buf[i] * buf[i + offset];
+    let bestCorrelation = 0;
+    let lastCorrelation = 1;
+
+    for (let offset = 4; offset < maxSamples; offset++) {
+      let correlation = 0;
+      for (let i = 0; i < maxSamples; i++) {
+        correlation += Math.abs(buf[i] - buf[i + offset]);
       }
-      corr /= buf.length - offset;
-      if (corr > bestCorr) { bestCorr = corr; bestOffset = offset; }
+      correlation = 1 - (correlation / maxSamples);
+      if (correlation > 0.9 && correlation > lastCorrelation) {
+        bestCorrelation = correlation;
+        bestOffset = offset;
+      } else if (bestCorrelation > 0 && correlation < bestCorrelation) {
+        const shift = (correlation - lastCorrelation) / bestCorrelation;
+        return sampleRate / (bestOffset + 8 * shift);
+      }
+      lastCorrelation = correlation;
     }
-    if (bestCorr > 0.3 && bestOffset > 0) {
+
+    if (bestCorrelation > 0.92) {
       return sampleRate / bestOffset;
     }
     return 0;
@@ -139,6 +157,11 @@ export class AudioService {
   stop() {
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.started = false;
+    this.onsetAr = [];
+    this.onsetTimes = [];
+    this.pitchHist = [];
+    this.session.setPitch(null);
+    this.session.setKey(null);
     this.session.setMode('IDLE');
     try { this.ctx?.close(); } catch {}
     this.ctx = undefined;
