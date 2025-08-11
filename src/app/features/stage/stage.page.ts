@@ -3,6 +3,7 @@ import { NgIf, NgFor } from '@angular/common';
 import { SessionStore } from '../../core/state/session.store';
 import { AudioService } from '../../core/audio/audio.service';
 import { BandEngineService } from '../../core/services/band-engine.service';
+import { FingerprintService } from '../../core/services/fingerprint.service';
 import { BandHUDComponent } from './hud/band-hud.component';
 import { BandControlComponent } from './band-control/band-control.component';
 import { TransportControlsComponent } from './transport-controls.component';
@@ -43,6 +44,7 @@ export class StagePage {
   session = inject(SessionStore);
   private audio = inject(AudioService);
   private band = inject(BandEngineService);
+  private fp = inject(FingerprintService);
   private chart: string[] = [];
 
   private record = effect(() => {
@@ -58,8 +60,7 @@ export class StagePage {
   async start() {
     await this.band.prepare();        // boot Tone + patterns
     await this.audio.initMic();       // ask mic permission
-    this.session.setMode('LISTENING');// until analysis locks on
-    this.session.setMode('REHEARSAL');// until we add known-song matching
+    this.session.setMode('LISTENING');// wait for fingerprint match
     this.chart = [];
   }
   stop() {

@@ -84,8 +84,12 @@ export class GatewayService {
       this.band.setChord(e.chord);
     }
     // Optionally adjust mode once first event arrives
-    if (this.session.mode() === 'LISTENING') {
-      this.session.setMode('FULL'); // mock "known song" for demo
+      if (this.session.mode() === 'LISTENING') {
+        if (e.conf && e.conf > 0.8) {
+          this.session.setMode('FULL');
+        } else {
+          this.session.setMode('REHEARSAL');
+        }
+      }
     }
   }
-}
