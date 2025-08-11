@@ -7,11 +7,12 @@ import { BandHUDComponent } from './hud/band-hud.component';
 import { BandControlComponent } from './band-control/band-control.component';
 import { TransportControlsComponent } from './transport-controls.component';
 import { MicLevelComponent } from './mic-level.component';
+import { StyleSelectorComponent } from './style-selector.component';
 
 @Component({
   standalone: true,
   selector: 'app-stage',
-  imports: [NgIf, NgFor, BandHUDComponent, BandControlComponent, TransportControlsComponent, MicLevelComponent],
+  imports: [NgIf, NgFor, BandHUDComponent, BandControlComponent, TransportControlsComponent, MicLevelComponent, StyleSelectorComponent],
   template: `
   <section class="stage">
     <app-band-hud [hud]="session.hud()" />
@@ -21,6 +22,7 @@ import { MicLevelComponent } from './mic-level.component';
         [instruments]="session.instruments()"
         (add)="onAdd($event)"
         (remove)="onRemove($event)"/>
+      <app-style-selector />
       <app-transport-controls
         (start)="start()"
         (stop)="stop()" />

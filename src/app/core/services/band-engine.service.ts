@@ -75,6 +75,10 @@ export class BandEngineService {
     // For MVP we won’t hard-remove; no-op here
   }
 
+  setStyle(style: string) {
+    // Switch patterns based on style (future work)
+  }
+
   private chordToNotes(sym: string): string[] {
     // Super-minimal triads for demo
     const map: Record<string, string[]> = {
