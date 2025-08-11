@@ -2,6 +2,17 @@ import { Injectable } from '@angular/core';
 import * as Tone from 'tone';
 import { SessionStore } from '../state/session.store';
 
+export interface DrumPattern {
+  kick: number[];
+  snare: number[];
+}
+
+const DRUM_STYLE_PRESETS: Record<string, DrumPattern> = {
+  pop_rock: { kick: [0], snare: [2] },
+  gospel: { kick: [0, 2], snare: [1, 3] },
+  jazz: { kick: [0], snare: [2] }
+};
+
 @Injectable({ providedIn: 'root' })
 export class BandEngineService {
   private started = false;
@@ -11,6 +22,9 @@ export class BandEngineService {
   private gtr?: Tone.PolySynth;
   private metSynth?: Tone.MembraneSynth;
   private metLoop?: Tone.Loop;
+  private drum?: Tone.Part;
+  private currentStyle = 'pop_rock';
+  private drumOverride?: Partial<DrumPattern>;
 
   constructor(private session: SessionStore) {}
 
@@ -41,18 +55,7 @@ export class BandEngineService {
     }, '4n');
 
     Tone.Transport.bpm.value = this.session.tempo() ?? 92;
-
-    // Very basic patterns (4/4)
-    const drum = new Tone.Part((time, step) => {
-      if (!this.kit || step === null) return;
-      const beat = step % 4;
-      if (beat === 0) this.kit.triggerAttackRelease("C3", "8n", time); // kick
-      if (beat === 2) this.kit.triggerAttackRelease("D3", "8n", time); // snare
-      this.kit.triggerAttackRelease("E3", "16n", time + 0.0); // hats
-      this.kit.triggerAttackRelease("E3", "16n", time + Tone.Time("8n").toSeconds());
-    }, [[0,0],[1,1],[2,2],[3,3]]).start(0);
-
-    drum.loop = true; drum.loopEnd = "1m";
+    this.applyStyle();
 
     const pad = new Tone.Loop((time) => {
       const chord = this.session.chord();
@@ -99,8 +102,39 @@ export class BandEngineService {
     // For MVP we won’t hard-remove; no-op here
   }
 
-  setStyle(style: string) {
-    // Switch patterns based on style (future work)
+  setStyle(style: string, override?: Partial<DrumPattern>) {
+    this.currentStyle = style;
+    this.drumOverride = override;
+    if (this.started) this.applyStyle();
+  }
+
+  overrideDrumPattern(override: Partial<DrumPattern>) {
+    this.drumOverride = { ...this.drumOverride, ...override };
+    if (this.started) this.applyStyle();
+  }
+
+  private applyStyle() {
+    const preset = DRUM_STYLE_PRESETS[this.currentStyle] ?? DRUM_STYLE_PRESETS['pop_rock'];
+    const pattern: DrumPattern = { ...preset, ...this.drumOverride };
+    Tone.Transport.swing = this.currentStyle === 'jazz' ? 0.2 : 0;
+    this.createDrumPart(pattern);
+  }
+
+  private createDrumPart(pattern: DrumPattern) {
+    if (this.drum) {
+      this.drum.stop(0);
+      this.drum.dispose();
+    }
+    this.drum = new Tone.Part((time, step) => {
+      if (!this.kit || step === null) return;
+      const beat = step % 4;
+      if (pattern.kick.includes(beat)) this.kit.triggerAttackRelease('C3', '8n', time);
+      if (pattern.snare.includes(beat)) this.kit.triggerAttackRelease('D3', '8n', time);
+      this.kit.triggerAttackRelease('E3', '16n', time + 0.0);
+      this.kit.triggerAttackRelease('E3', '16n', time + Tone.Time('8n').toSeconds());
+    }, [[0, 0], [1, 1], [2, 2], [3, 3]]).start(0);
+    this.drum.loop = true;
+    this.drum.loopEnd = '1m';
   }
 
   private chordToNotes(sym: string): string[] {
