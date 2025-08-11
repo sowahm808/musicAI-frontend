@@ -1,7 +1,7 @@
 # TODO
 
   - [x] Mic input & onset detection enhancements
-  - [ ] Pitch, key, chord, tempo estimation
+  - [x] Pitch, key, chord, tempo estimation
   - [x] Rehearsal mode with chart builder
   - [ ] Known song fingerprint matching
   - [ ] Band style presets and pattern overrides
