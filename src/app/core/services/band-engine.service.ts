@@ -41,7 +41,11 @@ export class BandEngineService {
       const chord = this.session.chord();
       const notes = this.chordToNotes(chord);
       this.keys?.triggerAttackRelease(notes, "1m", time);
-      this.gtr?.triggerAttackRelease(notes.map(n => Tone.Frequency(n).transpose(12)), "2n", time);
+      // Transpose the chord up one octave for the guitar part.
+      // `Tone.Frequency().transpose()` returns a FrequencyClass, which needs to
+      // be converted back to a note string for `triggerAttackRelease`.
+      const gtrNotes = notes.map(n => Tone.Frequency(n).transpose(12).toNote());
+      this.gtr?.triggerAttackRelease(gtrNotes, "2n", time);
     }, "1m").start(0);
 
     this.started = true;
