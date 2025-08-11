@@ -75,6 +75,10 @@ export class StagePage {
   onTempo(bpm: number) { this.session.setTempo(bpm); this.band.setTempo(bpm); }
   onMetronome(on: boolean) { this.session.setMetronome(on); this.band.toggleMetronome(on); }
   saveChart() {
+    const name = window.prompt('Chart name?') || `Chart ${new Date().toLocaleString()}`;
+    const charts = JSON.parse(localStorage.getItem('charts') ?? '[]');
+    charts.push({ name, chords: this.chart });
+    localStorage.setItem('charts', JSON.stringify(charts));
     localStorage.setItem('lastChart', JSON.stringify(this.chart));
   }
   onAdd(name: string) { this.session.addInstrument(name); this.band.addInstrument(name); }
