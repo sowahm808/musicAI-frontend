@@ -95,10 +95,9 @@ export class AudioService {
     const rc = new Array(12).fill(0);
     for (const pc of recent) rc[pc]++;
     const root = rc.indexOf(Math.max(...rc));
-    const hasMinor = rc[(root + 3) % 12] > 0;
-    const hasMajor = rc[(root + 4) % 12] > 0;
-    const hasFifth = rc[(root + 7) % 12] > 0;
-    if (hasFifth) {
+    if (rc[root] > 0) {
+      const hasMinor = rc[(root + 3) % 12] > 0;
+      const hasMajor = rc[(root + 4) % 12] > 0;
       const chord = this.NOTE_NAMES[root] + (hasMinor && !hasMajor ? 'm' : '');
       this.session.setChord(chord);
       this.band.setChord(chord);
