@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgFor } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
   selector: 'app-band-control',
-  imports: [NgFor],
+  imports: [NgFor, FormsModule],
   template: `
   <div class="panel">
     <h3>Band</h3>
