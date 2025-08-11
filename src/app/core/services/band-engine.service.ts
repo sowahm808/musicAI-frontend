@@ -6,8 +6,11 @@ import { SessionStore } from '../state/session.store';
 export class BandEngineService {
   private started = false;
   private kit?: Tone.Sampler;
+  private bass?: Tone.Sampler;
   private keys?: Tone.PolySynth;
   private gtr?: Tone.PolySynth;
+  private metSynth?: Tone.MembraneSynth;
+  private metLoop?: Tone.Loop;
 
   constructor(private session: SessionStore) {}
 
@@ -20,12 +23,22 @@ export class BandEngineService {
 
     // Simple instruments (replace with SoundFonts later)
     this.kit = new Tone.Sampler({
-      urls: { C3: "kick.wav", D3: "snare.wav", E3: "hihat.wav" },
-      baseUrl: "assets/soundfonts/"
+      urls: { C3: 'kick.wav', D3: 'snare.wav', E3: 'hihat.wav' },
+      baseUrl: 'soundfonts/'
+    }).toDestination();
+
+    this.bass = new Tone.Sampler({
+      urls: { C2: 'bass_C2.wav' },
+      baseUrl: 'soundfonts/'
     }).toDestination();
 
     this.keys = new Tone.PolySynth(Tone.Synth).toDestination();
     this.gtr  = new Tone.PolySynth(Tone.Synth).toDestination();
+
+    this.metSynth = new Tone.MembraneSynth().toDestination();
+    this.metLoop = new Tone.Loop((time) => {
+      this.metSynth?.triggerAttackRelease('C2', '16n', time);
+    }, '4n');
 
     Tone.Transport.bpm.value = this.session.tempo() ?? 92;
 
@@ -52,6 +65,12 @@ export class BandEngineService {
       this.gtr?.triggerAttackRelease(gtrNotes, "2n", time);
     }, "1m").start(0);
 
+    new Tone.Loop((time) => {
+      const note = this.chordRoot(this.session.chord());
+      this.bass?.triggerAttackRelease(note, '1m', time);
+    }, '1m').start(0);
+
+
     this.started = true;
     if (Tone.Transport.state !== 'started') Tone.Transport.start();
   }
@@ -62,6 +81,11 @@ export class BandEngineService {
   }
 
   setTempo(bpm: number) { Tone.Transport.bpm.rampTo(bpm, 0.05); }
+
+  toggleMetronome(on: boolean) {
+    if (!this.metLoop) return;
+    if (on) this.metLoop.start(0); else this.metLoop.stop(0);
+  }
 
   setChord(chord: string) {
     // no action needed; pad loop reads latest chord each bar
@@ -87,5 +111,12 @@ export class BandEngineService {
       'Dm': ['D3','F3','A3'], 'Em': ['E3','G3','B3']
     };
     return map[sym] ?? ['C4','E4','G4'];
+  }
+
+  private chordRoot(sym: string): string {
+    const map: Record<string, string> = {
+      'C': 'C2', 'Am': 'A1', 'F': 'F1', 'G': 'G1', 'Dm': 'D1', 'Em': 'E1'
+    };
+    return map[sym] ?? 'C2';
   }
 }
