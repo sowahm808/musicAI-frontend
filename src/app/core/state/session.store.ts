@@ -8,6 +8,7 @@ export class SessionStore {
   readonly key = signal<string | null>(null);
   readonly tempo = signal<number | null>(null);
   readonly chord = signal<string>('C');
+  readonly pitch = signal<string | null>(null);
   readonly instruments = signal<string[]>(['guitar','keys','drums']);
   readonly style = signal<string>('pop_rock');
   readonly metronome = signal<boolean>(false);
@@ -15,6 +16,7 @@ export class SessionStore {
   readonly hud = computed(() => ({
     mode: this.mode(),
     key: this.key(),
+    pitch: this.pitch(),
     chord: this.chord(),
     tempo: this.tempo() ?? 92,
     metronome: this.metronome(),
@@ -29,6 +31,7 @@ export class SessionStore {
   }
   setChord(c: string) { this.chord.set(c); }
   setKey(k: string | null) { this.key.set(k); }
+  setPitch(p: string | null) { this.pitch.set(p); }
   setTempo(bpm: number | null) { this.tempo.set(bpm); }
   setMode(m: Mode) { this.mode.set(m); }
   setStyle(s: string) { this.style.set(s); }

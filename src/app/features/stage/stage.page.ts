@@ -1,16 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, effect } from '@angular/core';
 import { NgIf, NgFor } from '@angular/common';
 import { SessionStore } from '../../core/state/session.store';
 import { AudioService } from '../../core/audio/audio.service';
 import { BandEngineService } from '../../core/services/band-engine.service';
-import { AnalysisStreamService } from '../../core/services/analysis-stream.service';
-import { Subscription } from 'rxjs';
 import { BandHUDComponent } from './hud/band-hud.component';
 import { BandControlComponent } from './band-control/band-control.component';
 import { TransportControlsComponent } from './transport-controls.component';
 import { MicLevelComponent } from './mic-level.component';
 import { StyleSelectorComponent } from './style-selector.component';
-import { GatewayService } from '../../core/services/gateway.service';
 
 @Component({
   standalone: true,
@@ -46,31 +43,28 @@ export class StagePage {
   session = inject(SessionStore);
   private audio = inject(AudioService);
   private band = inject(BandEngineService);
-  private analysis = inject(AnalysisStreamService);
-  private gw = inject(GatewayService);
-
-
-  private chordSub?: Subscription;
   private chart: string[] = [];
+
+  private record = effect(() => {
+    const chord = this.session.chord();
+    if (this.session.mode() !== 'IDLE') {
+      if (this.chart[this.chart.length - 1] !== chord) {
+        this.chart.push(chord);
+      }
+    }
+  });
 
 
   async start() {
     await this.band.prepare();        // boot Tone + patterns
     await this.audio.initMic();       // ask mic permission
-    this.gw.connect();                // start receiving analysis events
-    this.session.setMode('LISTENING');// until first analysis flips to FULL
+    this.session.setMode('LISTENING');// until analysis locks on
     this.session.setMode('REHEARSAL');// until we add known-song matching
     this.chart = [];
-    this.chordSub = this.analysis.connect().subscribe(ch => {
-      this.session.setChord(ch);
-      this.chart.push(ch);
-    });
   }
   stop() {
-    this.gw.disconnect();
     this.band.stop();
     this.audio.stop();
-    this.chordSub?.unsubscribe();
   }
   onTempo(bpm: number) { this.session.setTempo(bpm); this.band.setTempo(bpm); }
   onMetronome(on: boolean) { this.session.setMetronome(on); this.band.toggleMetronome(on); }
