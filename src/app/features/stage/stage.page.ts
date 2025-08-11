@@ -10,6 +10,7 @@ import { BandControlComponent } from './band-control/band-control.component';
 import { TransportControlsComponent } from './transport-controls.component';
 import { MicLevelComponent } from './mic-level.component';
 import { StyleSelectorComponent } from './style-selector.component';
+import { GatewayService } from '../../core/services/gateway.service';
 
 @Component({
   standalone: true,
@@ -46,13 +47,18 @@ export class StagePage {
   private audio = inject(AudioService);
   private band = inject(BandEngineService);
   private analysis = inject(AnalysisStreamService);
+  private gw = inject(GatewayService);
+
 
   private chordSub?: Subscription;
   private chart: string[] = [];
 
+
   async start() {
     await this.band.prepare();        // boot Tone + patterns
     await this.audio.initMic();       // ask mic permission
+    this.gw.connect();                // start receiving analysis events
+    this.session.setMode('LISTENING');// until first analysis flips to FULL
     this.session.setMode('REHEARSAL');// until we add known-song matching
     this.chart = [];
     this.chordSub = this.analysis.connect().subscribe(ch => {
@@ -61,6 +67,7 @@ export class StagePage {
     });
   }
   stop() {
+    this.gw.disconnect();
     this.band.stop();
     this.audio.stop();
     this.chordSub?.unsubscribe();
@@ -72,4 +79,6 @@ export class StagePage {
   }
   onAdd(name: string) { this.session.addInstrument(name); this.band.addInstrument(name); }
   onRemove(name: string) { this.session.removeInstrument(name); this.band.removeInstrument(name); }
+
+  
 }
