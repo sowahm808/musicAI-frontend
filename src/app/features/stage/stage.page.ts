@@ -6,14 +6,16 @@ import { BandEngineService } from '../../core/services/band-engine.service';
 import { BandHUDComponent } from './hud/band-hud.component';
 import { BandControlComponent } from './band-control/band-control.component';
 import { TransportControlsComponent } from './transport-controls.component';
+import { MicLevelComponent } from './mic-level.component';
 
 @Component({
   standalone: true,
   selector: 'app-stage',
-  imports: [NgIf, NgFor, BandHUDComponent, BandControlComponent, TransportControlsComponent],
+  imports: [NgIf, NgFor, BandHUDComponent, BandControlComponent, TransportControlsComponent, MicLevelComponent],
   template: `
   <section class="stage">
     <app-band-hud [hud]="session.hud()" />
+    <app-mic-level *ngIf="session.mode() !== 'IDLE'"></app-mic-level>
     <div class="row">
       <app-band-control
         [instruments]="session.instruments()"
