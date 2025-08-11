@@ -12,13 +12,17 @@ export class BandEngineService {
   constructor(private session: SessionStore) {}
 
   async prepare() {
-    // init Tone context on first user interaction
-    await Tone.start();
+    if (this.started) return;
+    if (Tone.context.state !== 'running') {
+      // init Tone context on first user interaction
+      await Tone.start();
+    }
 
     // Simple instruments (replace with SoundFonts later)
     this.kit = new Tone.Sampler({
-      urls: { C3: "kick.wav", D3: "snare.wav", E3: "hihat.wav" }
-    }, undefined, "assets/soundfonts/").toDestination();
+      urls: { C3: "kick.wav", D3: "snare.wav", E3: "hihat.wav" },
+      baseUrl: "assets/soundfonts/"
+    }).toDestination();
 
     this.keys = new Tone.PolySynth(Tone.Synth).toDestination();
     this.gtr  = new Tone.PolySynth(Tone.Synth).toDestination();
@@ -27,13 +31,13 @@ export class BandEngineService {
 
     // Very basic patterns (4/4)
     const drum = new Tone.Part((time, step) => {
-      if (!this.kit) return;
+      if (!this.kit || step === null) return;
       const beat = step % 4;
       if (beat === 0) this.kit.triggerAttackRelease("C3", "8n", time); // kick
       if (beat === 2) this.kit.triggerAttackRelease("D3", "8n", time); // snare
       this.kit.triggerAttackRelease("E3", "16n", time + 0.0); // hats
       this.kit.triggerAttackRelease("E3", "16n", time + Tone.Time("8n").toSeconds());
-    }, [0,1,2,3]).start(0);
+    }, [[0,0],[1,1],[2,2],[3,3]]).start(0);
 
     drum.loop = true; drum.loopEnd = "1m";
 
