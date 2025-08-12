@@ -1,4 +1,4 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject, effect, HostListener } from '@angular/core';
 import { NgIf, NgFor } from '@angular/common';
 import { SessionStore } from '../../core/state/session.store';
 import { AudioService } from '../../core/audio/audio.service';
@@ -79,5 +79,27 @@ export class StagePage {
   onAdd(name: string) { this.session.addInstrument(name); this.band.addInstrument(name); }
   onRemove(name: string) { this.session.removeInstrument(name); this.band.removeInstrument(name); }
 
-  
+  @HostListener('window:keydown', ['$event'])
+  handleKey(e: KeyboardEvent) {
+    const target = e.target as HTMLElement;
+    const tag = target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || (target as any).isContentEditable) {
+      return;
+    }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (this.session.mode() === 'IDLE') {
+        this.start();
+      } else {
+        this.stop();
+      }
+    } else if (e.key.toLowerCase() === 'm') {
+      e.preventDefault();
+      this.onMetronome(!this.session.metronome());
+    } else if ((e.key.toLowerCase() === 's') && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      this.saveChart();
+    }
+  }
+
 }
