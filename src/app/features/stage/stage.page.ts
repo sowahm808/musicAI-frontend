@@ -38,6 +38,7 @@ import { StyleSelectorComponent } from './style-selector.component';
   styles: [`
     .stage{max-width:960px;margin:1rem auto;padding:1rem}
     .row{display:flex;gap:1rem;flex-wrap:wrap}
+    @media (max-width:640px){.row{flex-direction:column}}
   `]
 })
 export class StagePage {

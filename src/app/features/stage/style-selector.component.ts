@@ -18,8 +18,10 @@ import { BandEngineService } from '../../core/services/band-engine.service';
     </div>
   `,
   styles: [`
+    :host{display:block}
     .panel{border:1px solid #e5e7eb;padding:.75rem;border-radius:.5rem;min-width:200px}
     select{padding:.4rem;border:1px solid #e5e7eb;border-radius:.25rem;width:100%}
+    @media (max-width:640px){.panel{min-width:0;width:100%}}
   `]
 })
 export class StyleSelectorComponent {
