@@ -20,6 +20,10 @@ export class BandEngineService {
   private bass?: Tone.Sampler;
   private keys?: Tone.PolySynth;
   private gtr?: Tone.PolySynth;
+  private kitGain?: Tone.Gain;
+  private bassGain?: Tone.Gain;
+  private keysGain?: Tone.Gain;
+  private gtrGain?: Tone.Gain;
   private metSynth?: Tone.MembraneSynth;
   private metLoop?: Tone.Loop;
   private drum?: Tone.Part;
@@ -36,18 +40,24 @@ export class BandEngineService {
     }
 
     // Simple instruments (replace with SoundFonts later)
+    const insts = this.session.instruments();
+    this.kitGain = new Tone.Gain(insts.includes('drums') ? 1 : 0).toDestination();
+    this.bassGain = new Tone.Gain(insts.includes('bass') ? 1 : 0).toDestination();
+    this.keysGain = new Tone.Gain(insts.includes('keys') ? 1 : 0).toDestination();
+    this.gtrGain = new Tone.Gain(insts.includes('guitar') ? 1 : 0).toDestination();
+
     this.kit = new Tone.Sampler({
       urls: { C3: 'kick.wav', D3: 'snare.wav', E3: 'hihat.wav' },
       baseUrl: 'soundfonts/'
-    }).toDestination();
+    }).connect(this.kitGain);
 
     this.bass = new Tone.Sampler({
       urls: { C2: 'bass_C2.wav' },
       baseUrl: 'soundfonts/'
-    }).toDestination();
+    }).connect(this.bassGain);
 
-    this.keys = new Tone.PolySynth(Tone.Synth).toDestination();
-    this.gtr  = new Tone.PolySynth(Tone.Synth).toDestination();
+    this.keys = new Tone.PolySynth(Tone.Synth).connect(this.keysGain);
+    this.gtr  = new Tone.PolySynth(Tone.Synth).connect(this.gtrGain);
 
     this.metSynth = new Tone.MembraneSynth().toDestination();
     this.metLoop = new Tone.Loop((time) => {
@@ -95,11 +105,14 @@ export class BandEngineService {
   }
 
   addInstrument(name: string) {
-    // Placeholder for future: load sampler/soundfont by name
-    // (we’re already playing gtr/keys/drums)
+    // fade in instrument if engine running
+    const g = this.gainFor(name);
+    g?.gain.rampTo(1, 0.5);
   }
   removeInstrument(name: string) {
-    // For MVP we won’t hard-remove; no-op here
+    // fade out instrument smoothly
+    const g = this.gainFor(name);
+    g?.gain.rampTo(0, 0.5);
   }
 
   setStyle(style: string, override?: Partial<DrumPattern>) {
@@ -111,6 +124,21 @@ export class BandEngineService {
   overrideDrumPattern(override: Partial<DrumPattern>) {
     this.drumOverride = { ...this.drumOverride, ...override };
     if (this.started) this.applyStyle();
+  }
+
+  private gainFor(name: string): Tone.Gain | undefined {
+    switch (name) {
+      case 'drums':
+        return this.kitGain;
+      case 'bass':
+        return this.bassGain;
+      case 'keys':
+        return this.keysGain;
+      case 'guitar':
+        return this.gtrGain;
+      default:
+        return undefined;
+    }
   }
 
   private applyStyle() {

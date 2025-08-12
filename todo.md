@@ -5,7 +5,7 @@
   - [x] Rehearsal mode with chart builder
   - [x] Known song fingerprint matching
   - [x] Band style presets and pattern overrides
-  - [ ] Instrument add/remove with smooth transitions
+  - [x] Instrument add/remove with smooth transitions
   - [x] Song library with save/load and cloud sync
   - [x] Offline-first PWA caching
   - [ ] Accessibility (keyboard shortcuts, high-contrast)
