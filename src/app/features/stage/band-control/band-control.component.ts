@@ -21,11 +21,13 @@ import { FormsModule } from '@angular/forms';
   </div>
   `,
   styles: [`
+    :host{display:block}
     .panel{border:1px solid #e5e7eb;padding:.75rem;border-radius:.5rem;min-width:260px}
     .chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
     .chip{border:1px solid #e5e7eb;padding:.25rem .5rem;border-radius:1rem}
     input{padding:.4rem;border:1px solid #e5e7eb;border-radius:.25rem;margin-right:.5rem}
     button{padding:.4rem .7rem;border:1px solid #e5e7eb;border-radius:.25rem;background:#fff;cursor:pointer}
+    @media (max-width:640px){.panel{min-width:0;width:100%}}
   `]
 })
 export class BandControlComponent {

@@ -20,10 +20,12 @@ import { Component, EventEmitter, Output, Input } from '@angular/core';
     </div>
   `,
   styles: [`
+    :host{display:block}
     .panel{border:1px solid #e5e7eb;padding:.75rem;border-radius:.5rem}
     .row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
     button{padding:.5rem .9rem;border:1px solid #e5e7eb;border-radius:.25rem;background:#fff;cursor:pointer}
     .tempo{display:flex;align-items:center;gap:.25rem}
+    @media (max-width:640px){.panel{width:100%}}
   `]
 })
 export class TransportControlsComponent {
