@@ -8,13 +8,18 @@ import { Router } from '@angular/router';
   imports: [NgIf, NgFor],
   template: `
   <section class="page">
-    <h2>Library</h2>
+    <h2 class="text-2xl font-semibold mb-4">Library</h2>
     <ng-container *ngIf="charts.length; else empty">
-      <ol>
-        <li *ngFor="let c of charts; index as i">
-          {{ c.name }} ({{ c.chords.length }} chords)
-          <button (click)="load(i)">Load</button>
-          <button (click)="remove(i)">Delete</button>
+      <ol class="space-y-2">
+        <li *ngFor="let c of charts; index as i" class="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded">
+          <div>
+            <span class="font-medium">{{ c.name }}</span>
+            <span class="text-sm text-gray-500 ml-2">({{ c.chords.length }} chords)</span>
+          </div>
+          <div class="space-x-2">
+            <button (click)="load(i)" class="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">Load</button>
+            <button (click)="remove(i)" class="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+          </div>
         </li>
       </ol>
     </ng-container>
