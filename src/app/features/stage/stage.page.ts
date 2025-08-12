@@ -2,6 +2,7 @@ import { Component, inject, effect, HostListener } from '@angular/core';
 import { NgIf, NgFor } from '@angular/common';
 import { SessionStore } from '../../core/state/session.store';
 import { AudioService } from '../../core/audio/audio.service';
+import { RecordingService } from '../../core/audio/recording.service';
 import { BandEngineService } from '../../core/services/band-engine.service';
 import { FingerprintService } from '../../core/services/fingerprint.service';
 import { BandHUDComponent } from './hud/band-hud.component';
@@ -27,11 +28,14 @@ import { StyleSelectorComponent } from './style-selector.component';
       <app-transport-controls
         [tempo]="session.tempo() ?? 92"
         [metronome]="session.metronome()"
+        [recording]="recording"
+        [recordingUrl]="recordingUrl"
         (tempoChange)="onTempo($event)"
         (metronomeChange)="onMetronome($event)"
         (start)="start()"
         (stop)="stop()"
-        (save)="saveChart()" />    
+        (record)="toggleRecord()"
+        (save)="saveChart()" />
       </div>
   </section>
   `,
@@ -44,9 +48,12 @@ import { StyleSelectorComponent } from './style-selector.component';
 export class StagePage {
   session = inject(SessionStore);
   private audio = inject(AudioService);
+  private rec = inject(RecordingService);
   private band = inject(BandEngineService);
   private fp = inject(FingerprintService);
   private chart: string[] = [];
+  recording = false;
+  recordingUrl: string | null = null;
 
   private record = effect(() => {
     const chord = this.session.chord();
@@ -79,6 +86,16 @@ export class StagePage {
   }
   onAdd(name: string) { this.session.addInstrument(name); this.band.addInstrument(name); }
   onRemove(name: string) { this.session.removeInstrument(name); this.band.removeInstrument(name); }
+
+  async toggleRecord() {
+    if (!this.recording) {
+      await this.rec.start();
+      this.recording = true;
+    } else {
+      this.recordingUrl = await this.rec.stop();
+      this.recording = false;
+    }
+  }
 
   @HostListener('window:keydown', ['$event'])
   handleKey(e: KeyboardEvent) {
