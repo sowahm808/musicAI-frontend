@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { SessionStore } from '../state/session.store';
 import { BandEngineService } from '../services/band-engine.service';
+import * as Tone from 'tone';
 
 @Injectable({ providedIn: 'root' })
 export class AudioService {
@@ -27,7 +28,8 @@ export class AudioService {
     this.pitchHist = [];
     this.started = false;
 
-    this.ctx = new AudioContext({ latencyHint: 'interactive' });
+    // use Tone.js' shared audio context so the mic can be recorded along with the band
+    this.ctx = Tone.getContext().rawContext as AudioContext;
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
     });
@@ -37,6 +39,14 @@ export class AudioService {
     this.mic.connect(this.analyser);
     this.session.setMode('LISTENING');
     this.loop();
+  }
+
+  // expose mic stream for recording
+  connectRecorder(dest: MediaStreamAudioDestinationNode) {
+    this.mic?.connect(dest);
+  }
+  disconnectRecorder(dest: MediaStreamAudioDestinationNode) {
+    try { this.mic?.disconnect(dest); } catch {}
   }
 
   private loop() {

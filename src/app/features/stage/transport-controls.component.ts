@@ -1,8 +1,10 @@
 import { Component, EventEmitter, Output, Input } from '@angular/core';
+import { NgIf } from '@angular/common';
 
 @Component({
   standalone: true,
   selector: 'app-transport-controls',
+  imports: [NgIf],
   template: `
     <div class="panel">
       <h3>Transport</h3>
@@ -15,6 +17,8 @@ import { Component, EventEmitter, Output, Input } from '@angular/core';
         </label>
         <label><input type="checkbox" [checked]="metronome"
           (change)="metronomeChange.emit($any($event.target).checked)">Click</label>
+        <button (click)="record.emit()">{{recording ? 'Stop Rec' : 'Record'}}</button>
+        <audio *ngIf="recordingUrl" [src]="recordingUrl" controls></audio>
         <button (click)="save.emit()">Save Chart</button>
       </div>
     </div>
@@ -33,7 +37,10 @@ export class TransportControlsComponent {
   @Output() stop = new EventEmitter<void>();
   @Input() tempo = 92;
   @Input() metronome = false;
+  @Input() recording = false;
+  @Input() recordingUrl: string | null = null;
   @Output() tempoChange = new EventEmitter<number>();
   @Output() metronomeChange = new EventEmitter<boolean>();
   @Output() save = new EventEmitter<void>();
+  @Output() record = new EventEmitter<void>();
 }
