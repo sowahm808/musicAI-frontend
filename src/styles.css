@@ -6,3 +6,15 @@
 body {
   @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
 }
+
+:root.hc body {
+  @apply bg-black text-white;
+}
+
+:root.hc .panel,
+:root.hc .hud,
+:root.hc button,
+:root.hc input,
+:root.hc select {
+  @apply bg-black text-white border-white;
+}
