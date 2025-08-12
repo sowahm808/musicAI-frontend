@@ -19,6 +19,7 @@ import { NgIf } from '@angular/common';
           (change)="metronomeChange.emit($any($event.target).checked)">Click</label>
         <button (click)="record.emit()">{{recording ? 'Stop Rec' : 'Record'}}</button>
         <audio *ngIf="recordingUrl" [src]="recordingUrl" controls></audio>
+        <a *ngIf="recordingUrl" [href]="recordingUrl" download="recording.webm" class="download">Download</a>
         <button (click)="save.emit()">Save Chart</button>
       </div>
     </div>
@@ -28,6 +29,7 @@ import { NgIf } from '@angular/common';
     .panel{border:1px solid #e5e7eb;padding:.75rem;border-radius:.5rem}
     .row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
     button{padding:.5rem .9rem;border:1px solid #e5e7eb;border-radius:.25rem;background:#fff;cursor:pointer}
+    a.download{padding:.5rem .9rem;border:1px solid #e5e7eb;border-radius:.25rem;background:#fff;cursor:pointer;text-decoration:none;color:inherit}
     .tempo{display:flex;align-items:center;gap:.25rem}
     @media (max-width:640px){.panel{width:100%}}
   `]
